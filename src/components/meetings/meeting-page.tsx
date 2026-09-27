@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft, BarChart3, CalendarDays, Check, Copy, Hash, Info, ListChecks, Plus, Search, Sparkles, UserRound, X,
+  ArrowLeft, ArrowRight, BarChart3, CalendarDays, Check, Copy, Hash, Info, ListChecks, Plus, Search, Sparkles, UserRound, X,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDemo } from "@/components/demo/demo-provider";
 import { addCustomChip, removeCustomChip } from "@/lib/meetings/actions";
+import { boardItems, groupFor } from "@/lib/demo/approvals";
 import { chipRegex, countMatches, fmtClock, matchLines, splitMatches } from "@/lib/meetings/highlight";
 import { cn, fmtDate } from "@/lib/utils";
 import { AvatarStack, colorFor, NotesSourceBadge } from "./meeting-bits";
@@ -111,7 +112,7 @@ function MeetingView({ m, setState }: { m: MeetingRecord; setState: ReturnType<t
               <NotesSourceBadge m={m} />
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
             <Button
               variant="outline"
               className="rounded-full"
@@ -123,15 +124,7 @@ function MeetingView({ m, setState }: { m: MeetingRecord; setState: ReturnType<t
             >
               {copied ? <Check /> : <Copy />} {copied ? "Copied" : "Copy notes"}
             </Button>
-            {m.analysisHref ? (
-              <Button asChild size="lg" className="rounded-full px-6">
-                <Link href={m.analysisHref}><BarChart3 /> View Analysis</Link>
-              </Button>
-            ) : (
-              <Button size="lg" className="rounded-full px-6" disabled title="Ambiguity analysis and sign-off are available for the sample meeting in demo mode.">
-                <BarChart3 /> View Analysis
-              </Button>
-            )}
+            <AnalysisButton href={m.analysisHref} />
           </div>
         </div>
         {m.notice && (
@@ -263,6 +256,37 @@ function MeetingView({ m, setState }: { m: MeetingRecord; setState: ReturnType<t
         </section>
       </div>
     </div>
+  );
+}
+
+/** The main call to action on a meeting: open its Analysis (approve / push back). */
+function AnalysisButton({ href }: { href: string | null }) {
+  const { state, persona } = useDemo();
+  const waiting = href ? boardItems(state, "meeting").filter((i) => groupFor(state, i, persona) === "needs_you").length : 0;
+  const body = (
+    <>
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary-foreground text-primary transition-transform group-hover:scale-105">
+        <BarChart3 className="size-5" />
+      </span>
+      <span className="flex flex-col text-left leading-tight">
+        <span className="text-lg font-semibold">View Analysis</span>
+        <span id="analysis-hint" className="text-xs font-normal opacity-80">
+          {href ? (waiting ? `${waiting} decision${waiting === 1 ? "" : "s"} waiting for you` : "Approve & push back") : "Available for the sample meeting"}
+        </span>
+      </span>
+      <ArrowRight className="ml-auto size-5 opacity-70 transition-transform group-hover:translate-x-0.5 sm:ml-2" />
+      <span aria-hidden className="pointer-events-none absolute -top-8 -right-6 size-24 rounded-full bg-[#f59e0b] opacity-30 blur-2xl" />
+    </>
+  );
+  const cls = "group relative flex min-h-16 w-full items-center gap-3 overflow-hidden rounded-full bg-primary py-2.5 pr-6 pl-2.5 text-primary-foreground shadow-lg transition-transform sm:w-auto sm:min-w-72";
+  return href ? (
+    <Link href={href} aria-label="View Analysis" aria-describedby="analysis-hint" className={cn(cls, "hover:-translate-y-0.5 focus-visible:ring-4 focus-visible:ring-ring/50 focus-visible:outline-none")}>
+      {body}
+    </Link>
+  ) : (
+    <button type="button" disabled aria-label="View Analysis" aria-describedby="analysis-hint" className={cn(cls, "cursor-not-allowed opacity-60")} title="Analysis and sign-off are available for the sample meeting in demo mode.">
+      {body}
+    </button>
   );
 }
 

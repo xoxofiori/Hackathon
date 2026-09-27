@@ -10,7 +10,7 @@ test("home: greeting, big New Meeting button, recent meeting cards open the meet
   const cta = page.getByRole("link", { name: /New Meeting/ }).first();
   await expect(cta).toBeVisible();
   const box = await cta.boundingBox();
-  expect(box!.height).toBeGreaterThan(120);
+  expect(box!.height).toBeGreaterThanOrEqual(112); // still the most prominent thing on Home
   for (const nav of ["Home", "Meetings", "Commitments", "Settings"]) {
     await expect(page.getByRole("navigation", { name: "Main" }).first().getByRole("link", { name: nav })).toBeVisible();
   }
@@ -47,7 +47,12 @@ test("meeting page: chips highlight transcript and notes, timestamps scroll, cus
   await page.reload();
   await expect(page.getByRole("button", { name: /^Geneva · \d+$/ })).toBeVisible(); // custom chips persist
 
-  await page.getByRole("link", { name: "View Analysis" }).click();
+  const analysis = page.getByRole("link", { name: "View Analysis" });
+  await expect(analysis).toContainText("decisions waiting for you");
+  const size = await analysis.boundingBox();
+  expect(size!.height).toBeGreaterThanOrEqual(64); // the biggest action on the meeting page
+  expect(size!.width).toBeGreaterThanOrEqual(280);
+  await analysis.click();
   await expect(page).toHaveURL(/\/demo$/);
   await expect(page.getByRole("region", { name: "Needs your decision" })).toBeVisible();
 });

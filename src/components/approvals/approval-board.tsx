@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useDemo } from "@/components/demo/demo-provider";
-import { approvableItems, approvalStatus, groupFor, type ApprovalStatus, type Group } from "@/lib/demo/approvals";
+import { approvalStatus, boardItems, groupFor, type ApprovalStatus, type Group } from "@/lib/demo/approvals";
 import { DEMO_PEOPLE, SIDES } from "@/lib/demo/people";
 import { cn } from "@/lib/utils";
 import { CommitmentCard, StatusTag } from "./commitment-card";
@@ -20,9 +20,7 @@ export function ApprovalBoard({ scope }: { scope: "meeting" | "all" }) {
   const { state, persona, ready } = useDemo();
   const me = DEMO_PEOPLE[persona];
   const other = SIDES[me.side === "A" ? "B" : "A"];
-  const items = approvableItems(state).filter(
-    (i) => scope === "all" || i.meeting === "m3" || !["committed", "declined"].includes(i.status),
-  );
+  const items = boardItems(state, scope);
   const byGroup = (g: Group) => items.filter((i) => groupFor(state, i, persona) === g).sort(byDue);
   const needsYou = byGroup("needs_you");
   const waiting = byGroup("waiting");

@@ -40,33 +40,25 @@ export function HomeDashboard() {
         </h1>
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Link
           href="/meetings/new"
-          className="group relative flex min-h-40 items-center gap-5 overflow-hidden rounded-[2rem] bg-primary p-6 text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5 focus-visible:ring-4 focus-visible:ring-ring/50 focus-visible:outline-none md:p-8"
+          className="group relative flex min-h-28 items-center gap-4 overflow-hidden rounded-[2rem] bg-primary p-5 text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5 focus-visible:ring-4 focus-visible:ring-ring/50 focus-visible:outline-none md:min-h-32 md:px-7"
         >
-          <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary-foreground text-primary transition-transform group-hover:scale-105 md:size-20">
-            <Plus className="size-8 md:size-10" strokeWidth={2.5} />
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary-foreground text-primary transition-transform group-hover:scale-105 md:size-14">
+            <Plus className="size-6 md:size-7" strokeWidth={2.5} />
           </span>
           <span className="flex flex-col gap-1">
-            <span className="text-2xl font-semibold tracking-tight md:text-3xl">New Meeting</span>
-            <span className="text-sm opacity-80 md:text-base">Paste a transcript, upload a recording, or try the sample meeting.</span>
+            <span className="text-xl font-semibold tracking-tight md:text-2xl">New Meeting</span>
+            <span className="text-sm opacity-80">Paste a transcript, upload a recording, or try the sample meeting.</span>
           </span>
           <ArrowRight className="ml-auto hidden size-6 opacity-70 transition-transform group-hover:translate-x-1 sm:block" />
           <span aria-hidden className="pointer-events-none absolute -top-12 -right-10 size-44 rounded-full bg-[#f59e0b] opacity-25 blur-2xl" />
         </Link>
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
-          <Link href="/demo" className="flex flex-col gap-1 rounded-3xl p-5 transition-shadow hover:shadow-md" style={{ backgroundColor: `color-mix(in oklch, ${SIDES.B.color} 14%, var(--card))` }}>
-            <span className="flex items-center gap-2 text-sm font-medium"><FileSignature className="size-4" /> Awaiting your signature</span>
-            <span className="text-3xl font-semibold tabular-nums">{awaiting}</span>
-            <span className="text-xs text-muted-foreground">Review and approve →</span>
-          </Link>
-          <Link href="/demo" className="flex flex-col gap-1 rounded-3xl p-5 transition-shadow hover:shadow-md" style={{ backgroundColor: `color-mix(in oklch, ${SIDES.A.color} 12%, var(--card))` }}>
-            <span className="flex items-center gap-2 text-sm font-medium"><MessageCircleQuestion className="size-4" /> Questions for {side.label}</span>
-            <span className="text-3xl font-semibold tabular-nums">{questions}</span>
-            <span className="text-xs text-muted-foreground">Answer before anything is signed →</span>
-          </Link>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+          <StatCard href="/demo" color={SIDES.B.color} icon={FileSignature} label="Awaiting your approval" value={awaiting} />
+          <StatCard href="/demo" color={SIDES.A.color} icon={MessageCircleQuestion} label={`Questions for ${side.label}`} value={questions} />
         </div>
       </div>
 
@@ -96,5 +88,22 @@ export function HomeDashboard() {
         </p>
       </section>
     </div>
+  );
+}
+
+function StatCard({ href, color, icon: Icon, label, value }: {
+  href: string; color: string; icon: typeof FileSignature; label: string; value: number;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 rounded-3xl px-5 py-3.5 transition-shadow hover:shadow-md"
+      style={{ backgroundColor: `color-mix(in oklch, ${color} 13%, var(--card))` }}
+    >
+      <Icon className="size-4 shrink-0" />
+      <span className="flex-1 text-sm font-medium">{label}</span>
+      <span className="text-2xl font-semibold tabular-nums">{value}</span>
+      <ArrowRight className="size-4 text-muted-foreground" />
+    </Link>
   );
 }

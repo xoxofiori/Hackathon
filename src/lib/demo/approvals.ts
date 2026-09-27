@@ -22,6 +22,11 @@ export function approvableItems(state: DemoState): DemoItem[] {
   return state.items.filter((i) => APPROVABLE.has(i.kind) && !HIDDEN.has(i.id));
 }
 
+/** Items on the Analysis page ("meeting": the sample meeting plus anything still open) or Commitments ("all"). */
+export function boardItems(state: DemoState, scope: "meeting" | "all"): DemoItem[] {
+  return approvableItems(state).filter((i) => scope === "all" || i.meeting === "m3" || !["committed", "declined"].includes(i.status));
+}
+
 export function approvalStatus(state: DemoState, item: DemoItem): ApprovalStatus {
   if (item.status === "committed") return "approved";
   if (item.status === "declined" || openClarifications(state, item.id).length > 0) return "pushed_back";
