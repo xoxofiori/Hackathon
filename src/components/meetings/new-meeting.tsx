@@ -11,15 +11,15 @@ import { addMeeting } from "@/lib/meetings/actions";
 import { parseTranscript, participantsOf, serializeTranscript } from "@/lib/meetings/parse";
 import { SAMPLE_TITLE, sampleLines } from "@/lib/meetings/sample";
 import { cn } from "@/lib/utils";
-import type { MeetingRecord, NotesResponse, TranscriptLine } from "@/lib/meetings/types";
+import type { GroupSuggestion, MeetingRecord, NotesResponse, TranscriptLine } from "@/lib/meetings/types";
 
-const STEPS = ["Reading the transcript", "Writing notes", "Finding keywords and owners", "Opening your meeting"];
+const STEPS = ["Reading the transcript", "Writing notes", "Finding keywords and owners", "Suggesting a group", "Opening your meeting"];
 const today = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export function NewMeeting() {
   const router = useRouter();
-  const { setState } = useDemo();
+  const { state, setState } = useDemo();
   const [title, setTitle] = useState("");
   const [mode, setMode] = useState<"paste" | "audio">("paste");
   const [text, setText] = useState("");
@@ -40,25 +40,33 @@ export function NewMeeting() {
   async function create(lines: TranscriptLine[], source: MeetingRecord["source"]) {
     setStep(1);
     const started = Date.now();
-    const res = await fetch("/api/meetings/notes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: title.trim() || "Untitled meeting", lines }),
-    });
-    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "Couldn't write notes for that transcript.");
-    const data = (await res.json()) as NotesResponse;
+    const name = title.trim() || "Untitled meeting";
+    const post = (url: string, body: unknown) =>
+      fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    // Notes and the group suggestion are independent, so ask for both at once.
+    const [notesRes, groupRes] = await Promise.all([
+      post("/api/meetings/notes", { title: name, lines }),
+      post("/api/meetings/group", { title: name, lines, groups: state.groups }).catch(() => null),
+    ]);
+    if (!notesRes.ok) throw new Error((await notesRes.json().catch(() => ({}))).error ?? "Couldn't write notes for that transcript.");
+    const data = (await notesRes.json()) as NotesResponse;
     setStep(2);
-    await wait(Math.max(0, 1400 - (Date.now() - started)));
+    const suggestion = groupRes?.ok ? ((await groupRes.json()) as GroupSuggestion) : null;
+    await wait(Math.max(0, 1100 - (Date.now() - started)));
+    setStep(3);
+    await wait(450);
     const id = `mtg-${Date.now().toString(36)}`;
     const now = new Date().toISOString();
     const record: MeetingRecord = {
-      id, title: title.trim() || "Untitled meeting", date: now, participants: participantsOf(lines), lines,
+      id, title: name, date: now, participants: participantsOf(lines), lines,
       notes: data.notes, chips: data.chips, customChips: [], source: data.isSample ? "sample" : source,
-      notesSource: data.source, model: data.model, notice: data.notice, analysisHref: data.isSample ? "/demo" : null, createdAt: now,
+      notesSource: data.source, model: data.model, notice: data.notice, // Only the Aurel sample meetings have commitments tracked on the Analysis page.
+      analysisHref: data.sampleKey && ["m1", "m2", "m3"].includes(data.sampleKey) ? "/demo" : null, createdAt: now,
+      groupId: null, groupSuggestion: suggestion,
     };
     setState((s) => addMeeting(s, record));
-    setStep(3);
-    await wait(350);
+    setStep(4);
+    await wait(300);
     router.push(`/meetings/${id}`);
   }
 

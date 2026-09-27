@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { FileSignature, FlaskConical, Home, NotebookText, RotateCcw, Settings } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { FileSignature, FlaskConical, Home, NotebookText, Plus, RotateCcw, Settings } from "lucide-react";
+import { createGroup } from "@/lib/meetings/groups";
 import { Logo } from "@/components/app/logo";
 import { PersonaToggle } from "./persona-toggle";
 import { useDemo } from "@/components/demo/demo-provider";
@@ -52,6 +54,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
+        <SidebarGroups path={path} />
         <div className="mt-auto flex flex-col gap-3">
           <div className="rounded-2xl border p-3" style={{ backgroundColor: `color-mix(in oklch, ${side.color} 8%, var(--card))` }}>
             <div className="flex items-center gap-2.5">
@@ -97,5 +100,74 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
         ))}
       </nav>
     </div>
+  );
+}
+
+/** Groups in the sidebar: click one to see its meetings; "+" creates a group in one step. */
+function SidebarGroups({ path }: { path: string }) {
+  const { state, setState } = useDemo();
+  const router = useRouter();
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState("");
+  const counts = new Map<string, number>();
+  for (const m of state.library) if (m.groupId) counts.set(m.groupId, (counts.get(m.groupId) ?? 0) + 1);
+
+  const add = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    let id = "";
+    setState((s) => {
+      const r = createGroup(s, name);
+      id = r.group.id;
+      return r.state;
+    });
+    setName("");
+    setAdding(false);
+    router.push(`/groups/${id}`);
+  };
+
+  return (
+    <section aria-labelledby="groups-title" className="flex min-h-0 flex-col">
+      <div className="flex items-center justify-between px-3.5">
+        <h2 id="groups-title" className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">Groups</h2>
+        <button onClick={() => setAdding(!adding)} aria-label="Create a group" className="rounded-full p-1 text-muted-foreground hover:bg-accent hover:text-foreground">
+          <Plus className="size-3.5" />
+        </button>
+      </div>
+      {adding && (
+        <form onSubmit={add} className="mt-2 px-2">
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={() => !name.trim() && setAdding(false)}
+            placeholder="Group name, then Enter"
+            aria-label="New group name"
+            autoFocus
+            className="h-8 w-full rounded-full border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          />
+        </form>
+      )}
+      <ul className="mt-1.5 flex flex-col gap-0.5 overflow-y-auto">
+        {state.groups.map((g) => {
+          const href = `/groups/${g.id}`;
+          const active = path === href;
+          return (
+            <li key={g.id}>
+              <Link
+                href={href}
+                aria-current={active ? "page" : undefined}
+                title={g.name}
+                className={cn("flex items-center gap-2.5 rounded-full px-3.5 py-1.5 text-sm", active ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent hover:text-foreground")}
+              >
+                <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: g.color }} />
+                <span className="min-w-0 flex-1 truncate">{g.name}</span>
+                <span className="text-xs tabular-nums opacity-70">{counts.get(g.id) ?? 0}</span>
+              </Link>
+            </li>
+          );
+        })}
+        {state.groups.length === 0 && !adding && <li className="px-3.5 text-xs text-muted-foreground">No groups yet.</li>}
+      </ul>
+    </section>
   );
 }

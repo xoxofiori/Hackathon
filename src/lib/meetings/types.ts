@@ -35,6 +35,29 @@ export interface MeetingParticipant {
   side: SideKey | null;
 }
 
+export interface MeetingGroup {
+  id: string;
+  name: string;
+  color: string;
+  description: string | null;
+  /** Words that identify the group's meetings (people, companies, projects, topics). Grows as meetings are added. */
+  keywords: string[];
+  createdAt: string;
+}
+
+/** An AI (or rule-based) suggestion of where a new meeting belongs. */
+export interface GroupSuggestion {
+  /** An existing group, or null when a new group is suggested. */
+  groupId: string | null;
+  /** Name for a new group (only when groupId is null). */
+  newName: string | null;
+  reason: string;
+  confidence: number;
+  source: "claude" | "rules" | "preset";
+  /** Terms from this transcript that identify it (used to teach the chosen group). */
+  terms: string[];
+}
+
 export interface MeetingRecord {
   id: string;
   title: string;
@@ -51,6 +74,9 @@ export interface MeetingRecord {
   /** The existing analysis / sign-off page for this meeting, when there is one. */
   analysisHref: string | null;
   createdAt: string;
+  groupId: string | null;
+  /** Shown until the user accepts it or picks a group themselves. */
+  groupSuggestion: GroupSuggestion | null;
 }
 
 /** What /api/meetings/notes returns. */
@@ -61,4 +87,6 @@ export interface NotesResponse {
   model: string | null;
   notice: string | null;
   isSample: boolean;
+  /** Which built-in sample this transcript is, if any. */
+  sampleKey: string | null;
 }

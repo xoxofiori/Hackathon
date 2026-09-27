@@ -1,5 +1,5 @@
 import type { DemoUserKey } from "@/lib/setup/demo-ids";
-import type { MeetingRecord } from "@/lib/meetings/types";
+import type { MeetingGroup, MeetingRecord } from "@/lib/meetings/types";
 
 export type SideKey = "A" | "B";
 export type PersonaKey = "maya" | "luca";
@@ -185,7 +185,7 @@ export interface DemoTask {
 }
 
 export interface DemoState {
-  schema: 3;
+  schema: 4;
   createdAt: string;
   meetings: DemoMeeting[];
   segments: DemoSegment[];
@@ -200,4 +200,5 @@ export interface DemoState {
   /** Meeting notes shown on Home and Meetings (samples plus meetings created in the browser). */
   library: MeetingRecord[];
   tasks: DemoTask[];
+  groups: MeetingGroup[];
 }

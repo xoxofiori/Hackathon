@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { DemoRuleError } from "@/lib/demo/engine";
-import { initialDemoState } from "@/lib/demo/sample-state";
+import { initialDemoState, migrateDemoState } from "@/lib/demo/sample-state";
 import type { DemoState, PersonaKey } from "@/lib/demo/types";
 
 const STATE_KEY = "accord-demo-state-v1";
@@ -63,13 +63,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       }
     })();
     /* eslint-disable react-hooks/set-state-in-effect -- hydrating from browser storage */
-    // Older saves keep their sign-offs and gain whatever the sample added since (meeting library, tasks).
-    const version = (saved as { schema?: number } | null)?.schema;
-    const restored: DemoState | null =
-      version === 3 ? saved
-      : version === 1 || version === 2
-        ? { ...initialDemoState(), ...saved!, ...(version === 1 ? { library: initialDemoState().library } : {}), schema: 3, tasks: initialDemoState().tasks }
-        : null;
+    const restored = migrateDemoState(saved);
     if (restored) {
       latest.current = restored;
       setStateRaw(restored);

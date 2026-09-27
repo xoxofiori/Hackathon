@@ -30,6 +30,15 @@ Demo mode is the default. It runs entirely in the browser with the built-in Wild
   basic rule-based notes (clearly labelled). With `ANTHROPIC_API_KEY`, notes come from `claude-opus-5-5`. Audio upload
   needs `DEEPGRAM_API_KEY`; without it the page says so and offers the sample meeting.
 
+- **Groups**: meetings are sorted into groups (a partner, project or workstream). When a meeting is created, a
+  group is suggested from its transcript — people, companies, projects and topics — or a new group is proposed when
+  nothing fits. Accept it, pick another, or create your own in one click from the meeting header. Groups are listed
+  in the sidebar; each group page shows its meetings, open commitments and upcoming deadlines, and can be renamed,
+  recolored or deleted (its meetings become unsorted). Home and Meetings show a colored group tag on every card and
+  can be filtered by group. With `ANTHROPIC_API_KEY`, suggestions come from `claude-sonnet-5`; without it, the six
+  sample meetings use pre-set groups and new meetings are matched on each group's keywords (which grow as meetings
+  are added).
+
 The **Analysis** page (`/demo`, "View Analysis" on a meeting) and **Commitments** (`/commitments`) use the same design:
 
 - **One list of commitment cards** — what, who, when — grouped as *Needs your decision*, *Waiting on the other side*
@@ -129,7 +138,8 @@ src/components/approvals/     Analysis & Commitments: commitment cards (approve 
 src/components/demo/         Demo state provider (browser storage)
 src/components/workspace/    Sidebar shell, Home dashboard, Settings
 src/components/meetings/     New Meeting flow, meeting cards, meeting notes page (filters · notes · transcript)
-src/lib/meetings/            Transcript parsing, keyword matching, sample + rule-based notes
+src/lib/meetings/            Transcript parsing, keyword matching, sample + rule-based notes, groups
+src/components/groups/       Group tags and filters, group picker, suggestion banner, group page
 src/lib/supabase/            Server (user session), browser and admin (service-role) clients
 src/lib/data/                Server-side data access (always through the user's session → RLS)
 src/proxy.ts                 Session refresh + auth gate (Next.js 16 "proxy", formerly middleware)

@@ -6,7 +6,8 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { SIDES } from "@/lib/demo/people";
 import { cn, fmtDate } from "@/lib/utils";
-import type { MeetingParticipant, MeetingRecord } from "@/lib/meetings/types";
+import { GroupTag } from "@/components/groups/group-tag";
+import type { MeetingGroup, MeetingParticipant, MeetingRecord } from "@/lib/meetings/types";
 
 const NEUTRAL = ["#475569", "#6d28d9", "#0369a1", "#be123c", "#4d7c0f"];
 export function colorFor(p: { name: string; side: MeetingParticipant["side"] }): string {
@@ -39,7 +40,7 @@ export function NotesSourceBadge({ m }: { m: Pick<MeetingRecord, "notesSource" |
   return <Badge variant="muted">Basic notes</Badge>;
 }
 
-export function MeetingCard({ m, tint }: { m: MeetingRecord; tint?: string }) {
+export function MeetingCard({ m, tint, group }: { m: MeetingRecord; tint?: string; group: MeetingGroup | null }) {
   return (
     <Link
       href={`/meetings/${m.id}`}
@@ -47,8 +48,8 @@ export function MeetingCard({ m, tint }: { m: MeetingRecord; tint?: string }) {
       style={tint ? { backgroundColor: `color-mix(in oklch, ${tint} 7%, var(--card))` } : undefined}
     >
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <CalendarDays className="size-3.5" /> {fmtDate(m.date)}
-        <span className="ml-auto"><NotesSourceBadge m={m} /></span>
+        <GroupTag group={group} className="min-w-0" />
+        <span className="ml-auto flex shrink-0 items-center gap-1.5"><CalendarDays className="size-3.5" /> {fmtDate(m.date)}</span>
       </div>
       <h3 className="font-serif text-xl leading-snug font-medium text-balance">{m.title}</h3>
       <p className="line-clamp-2 text-sm text-muted-foreground">{m.notes.summaryLine}</p>
@@ -58,6 +59,7 @@ export function MeetingCard({ m, tint }: { m: MeetingRecord; tint?: string }) {
           {m.participants.slice(0, 2).map((p) => p.name.split(" ")[0]).join(", ")}
           {m.participants.length > 2 ? ` +${m.participants.length - 2}` : ""}
         </span>
+        <span className="ml-auto"><NotesSourceBadge m={m} /></span>
       </div>
     </Link>
   );

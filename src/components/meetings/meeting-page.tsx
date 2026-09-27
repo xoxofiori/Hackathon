@@ -14,6 +14,8 @@ import { boardItems, groupFor } from "@/lib/demo/approvals";
 import { chipRegex, countMatches, fmtClock, matchLines, splitMatches } from "@/lib/meetings/highlight";
 import { cn, fmtDate } from "@/lib/utils";
 import { AvatarStack, colorFor, NotesSourceBadge } from "./meeting-bits";
+import { GroupPicker } from "@/components/groups/group-picker";
+import { GroupSuggestionBanner } from "@/components/groups/group-suggestion";
 import type { FilterChip, MeetingNotes, MeetingRecord } from "@/lib/meetings/types";
 
 const CHIP_COLORS: Record<string, string> = {
@@ -110,6 +112,7 @@ function MeetingView({ m, setState }: { m: MeetingRecord; setState: ReturnType<t
                 <AvatarStack people={m.participants} max={5} /> {m.participants.length} people
               </span>
               <NotesSourceBadge m={m} />
+              <GroupPicker meeting={m} />
             </div>
           </div>
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
@@ -127,6 +130,7 @@ function MeetingView({ m, setState }: { m: MeetingRecord; setState: ReturnType<t
             <AnalysisButton href={m.analysisHref} />
           </div>
         </div>
+        <GroupSuggestionBanner meeting={m} />
         {m.notice && (
           <p className="mt-3 flex items-start gap-2 rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground"><Info className="mt-0.5 size-3.5 shrink-0" /> {m.notice}</p>
         )}
@@ -271,7 +275,7 @@ function AnalysisButton({ href }: { href: string | null }) {
       <span className="flex flex-col text-left leading-tight">
         <span className="text-lg font-semibold">View Analysis</span>
         <span id="analysis-hint" className="text-xs font-normal opacity-80">
-          {href ? (waiting ? `${waiting} decision${waiting === 1 ? "" : "s"} waiting for you` : "Approve & push back") : "Available for the sample meeting"}
+          {href ? (waiting ? `${waiting} decision${waiting === 1 ? "" : "s"} waiting for you` : "Approve & push back") : "No commitments to review yet"}
         </span>
       </span>
       <ArrowRight className="ml-auto size-5 opacity-70 transition-transform group-hover:translate-x-0.5 sm:ml-2" />
@@ -284,7 +288,7 @@ function AnalysisButton({ href }: { href: string | null }) {
       {body}
     </Link>
   ) : (
-    <button type="button" disabled aria-label="View Analysis" aria-describedby="analysis-hint" className={cn(cls, "cursor-not-allowed opacity-60")} title="Analysis and sign-off are available for the sample meeting in demo mode.">
+    <button type="button" disabled aria-label="View Analysis" aria-describedby="analysis-hint" className={cn(cls, "cursor-not-allowed opacity-60")} title="This meeting has no commitments tracked for approval yet. In demo mode, the Aurel sponsorship meetings have them.">
       {body}
     </button>
   );

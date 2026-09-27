@@ -27,16 +27,16 @@ export async function POST(request: Request) {
 
   const fallback = (notice: string | null): NotesResponse =>
     sample
-      ? { notes: sampleNotes(sample, today), chips: SAMPLE_CHIPS[sample], source: "pregenerated", model: null, notice, isSample: true }
+      ? { notes: sampleNotes(sample, today), chips: SAMPLE_CHIPS[sample], source: "pregenerated", model: null, notice, isSample: true, sampleKey: sample }
       : {
-          notes: basicNotes(title, lines), chips: BASIC_CHIPS, source: "basic", model: null, isSample: false,
+          notes: basicNotes(title, lines), chips: BASIC_CHIPS, source: "basic", model: null, isSample: false, sampleKey: null,
           notice: notice ?? "No Claude API key is configured, so these are basic notes built from simple rules. Add ANTHROPIC_API_KEY for AI notes.",
         };
 
   if (!hasAnthropicKey()) return NextResponse.json(fallback(null));
   try {
     const { notes, chips, model } = await generateNotes(title || "Untitled meeting", lines);
-    const body: NotesResponse = { notes, chips, source: "claude", model, notice: null, isSample: !!sample };
+    const body: NotesResponse = { notes, chips, source: "claude", model, notice: null, isSample: !!sample, sampleKey: sample };
     return NextResponse.json(body);
   } catch (err) {
     const reason =

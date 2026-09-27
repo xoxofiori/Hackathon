@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { ArrowRight, CalendarClock, FileSignature, MessageCircleQuestion, Plus, Sparkles } from "lucide-react";
 import { useDemo } from "@/components/demo/demo-provider";
 import { MeetingCard } from "@/components/meetings/meeting-bits";
+import { GroupFilter, groupCounts, type GroupFilterValue } from "@/components/groups/group-tag";
 import { DEMO_PEOPLE, SIDES } from "@/lib/demo/people";
 import { fmtDateTime } from "@/lib/utils";
 
@@ -24,7 +25,10 @@ export function HomeDashboard() {
   const hello = useSyncExternalStore(subscribe, greeting, () => "Hello");
   const today = useSyncExternalStore(subscribe, longDate, () => "");
 
-  const meetings = [...state.library].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+  const [filter, setFilter] = useState<GroupFilterValue>("all");
+  const all = [...state.library].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+  const meetings = all.filter((m) => filter === "all" || (filter === "unsorted" ? !m.groupId : m.groupId === filter));
+  const groupOf = (id: string | null) => state.groups.find((g) => g.id === id) ?? null;
   const awaiting = state.items.filter(
     (i) => i.status === "partially_signed" && !i.signatures.some((s) => s.version === i.currentVersion && s.side === me.side),
   ).length;
@@ -76,11 +80,14 @@ export function HomeDashboard() {
           <h2 id="recent-title" className="text-lg font-semibold">
             Recent meetings <span className="text-muted-foreground">({meetings.length})</span>
           </h2>
-          <Link href="/meetings" className="text-sm text-muted-foreground hover:text-foreground">View all</Link>
+          <Link href={filter !== "all" && filter !== "unsorted" ? `/groups/${filter}` : "/meetings"} className="text-sm text-muted-foreground hover:text-foreground">
+            {filter !== "all" && filter !== "unsorted" ? "Open group →" : "View all"}
+          </Link>
         </div>
+        <GroupFilter groups={state.groups} counts={groupCounts(all)} value={filter} onChange={setFilter} />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {meetings.slice(0, 6).map((m, i) => (
-            <MeetingCard key={m.id} m={m} tint={i === 0 ? side.color : undefined} />
+            <MeetingCard key={m.id} m={m} group={groupOf(m.groupId)} tint={i === 0 && filter === "all" ? side.color : undefined} />
           ))}
         </div>
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">

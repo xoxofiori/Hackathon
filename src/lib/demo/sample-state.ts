@@ -5,6 +5,7 @@
  */
 import { SAMPLE_TRANSCRIPTS } from "@/lib/sample/wildframe-aurel";
 import { sampleRecords } from "@/lib/meetings/sample";
+import { sampleGroups } from "@/lib/meetings/groups";
 import { deriveStatus } from "./engine";
 import { hashVersion } from "./hash";
 import { PEOPLE, SIDES } from "./people";
@@ -262,8 +263,8 @@ export function initialDemoState(now: Date = new Date()): DemoState {
   });
 
   const base: DemoState = {
-    schema: 3, createdAt: now.toISOString(), meetings, segments, items, clarifications, library: sampleRecords(now),
-    tasks: sampleTasks(d),
+    schema: 4, createdAt: now.toISOString(), meetings, segments, items, clarifications, library: sampleRecords(now),
+    tasks: sampleTasks(d), groups: sampleGroups(now),
     goals: [
       { id: "g-premiere", side: null, private: false, title: "Launch Season 3 with a co-branded premiere in Geneva", criteria: "Premiere hosted by Aurel in late January 2027; both brands on all launch materials.", progress: 55, status: "on_track", summary: "Date and host agreed. The early “Q1” mismatch was caught and resolved. Guest list and press plan are open." },
       { id: "g-schedule", side: "A", private: false, title: "Deliver all branded content on schedule", criteria: "Every vignette reaches Aurel on or before its signed date.", progress: 45, status: "at_risk", summary: "Episode 1 rough cut arrived 3 days late; weather is a known risk for vignettes 2–4." },
@@ -319,3 +320,23 @@ function sampleTasks(d: (offset: number) => string): DemoState["tasks"] {
 }
 
 export const sideLabel = (s: SideKey | null) => (s ? SIDES[s].label : "Joint");
+
+/**
+ * Bring a save from an older version of the demo up to date. Sign-offs, notes and
+ * meetings the user created are kept; the sample additions since (meeting library,
+ * tasks, groups, extra sample meetings) are filled in. Returns null for unknown data.
+ */
+export function migrateDemoState(saved: unknown, now: Date = new Date()): DemoState | null {
+  const version = (saved as { schema?: number } | null)?.schema;
+  if (version === 4) return saved as DemoState;
+  if (version !== 1 && version !== 2 && version !== 3) return null;
+  const fresh = initialDemoState(now);
+  const old = saved as DemoState;
+  const kept = (version === 1 ? [] : old.library ?? []).map((m) => ({
+    ...m,
+    groupId: m.groupId ?? fresh.library.find((f) => f.id === m.id)?.groupId ?? null,
+    groupSuggestion: m.groupSuggestion ?? null,
+  }));
+  const library = [...kept, ...fresh.library.filter((f) => !kept.some((k) => k.id === f.id))];
+  return { ...fresh, ...old, schema: 4, library, groups: fresh.groups, tasks: version === 3 ? old.tasks : fresh.tasks };
+}
