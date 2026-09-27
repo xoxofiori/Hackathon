@@ -3,9 +3,8 @@ import { expect, test, type Page } from "@playwright/test";
 const card = (page: Page, id: string) => page.locator(`#item-${id}`);
 
 test("demo mode: sign-offs, pushbacks, persona toggle, privacy and persistence — all in the browser", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: /Enter demo as Luca Brunner/ }).click();
-  await page.waitForURL(/\/demo/);
+  await page.goto("/demo");
+  await page.getByRole("radio", { name: /Luca Brunner/ }).click();
   await expect(page.getByText("You're Luca Brunner on Aurel Watches")).toBeVisible();
 
   // Pre-generated ambiguity flags (no API key in this environment).

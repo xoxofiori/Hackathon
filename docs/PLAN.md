@@ -102,6 +102,7 @@ Integrity rules enforced in the database (and tested):
 |---|---|---|
 | 1 | Foundation: schema, RLS, auth, profiles, orgs, sides, partnerships, invites, roles, seed, `/setup` | **done** — 50 DB rule tests + e2e invite flow |
 | 1b | Demo mode (default): no Supabase/env, built-in sample meeting, browser storage, Maya ⇄ Luca toggle, sign-off + pushback, Claude ambiguity scan with pre-generated fallback | **done** — engine unit tests + e2e |
+| 1c | Home dashboard, New Meeting flow, meeting notes page (filters · notes · transcript) in demo mode | **done** — e2e covered |
 | 2 | Partnership Hub skeleton (Commitments, Tasks, Timeline, Goals, Health, Meetings, Export) | next |
 | 3 | Meeting Prep + AI prep suggestions | |
 | 4 | Live Meeting Room (LiveKit, consent, transcript, live extraction, clarifications, sign-off) | |

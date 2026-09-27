@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import { SiteHeader } from "@/components/app/site-header";
-import { DemoHeader } from "@/components/demo/demo-header";
 import { DemoProvider } from "@/components/demo/demo-provider";
 import { isDemoMode } from "@/lib/mode";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const serif = Newsreader({ variable: "--font-serif-display", subsets: ["latin"], style: ["normal", "italic"] });
 
 export const metadata: Metadata = {
   title: { default: "Accord — partnership meeting intelligence", template: "%s · Accord" },
@@ -26,12 +26,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} min-h-dvh font-sans`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${serif.variable} min-h-dvh font-sans`}>
         {isDemoMode() ? (
-          <DemoProvider>
-            <DemoHeader />
-            {children}
-          </DemoProvider>
+          <DemoProvider>{children}</DemoProvider>
         ) : (
           <>
             <SiteHeader />

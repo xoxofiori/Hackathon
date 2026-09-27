@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { useDemo } from "./demo-provider";
 import type { PersonaKey } from "@/lib/demo/types";
 
-export function PersonaToggle({ className }: { className?: string }) {
+export function PersonaToggle({ className, short = false }: { className?: string; short?: boolean }) {
   const { persona, setPersona } = useDemo();
   return (
     <div role="radiogroup" aria-label="View the demo as" className={cn("inline-flex rounded-lg border bg-muted p-0.5", className)}>
@@ -30,8 +30,8 @@ export function PersonaToggle({ className }: { className?: string }) {
             title={`${p.name}, ${p.title} — ${SIDES[p.side].label}`}
           >
             <span className="size-2.5 rounded-full" style={{ backgroundColor: SIDES[p.side].color }} />
-            <span className="sm:hidden">{p.name.split(" ")[0]}</span>
-            <span className="hidden sm:inline">{p.name}</span>
+            <span className={short ? "" : "sm:hidden"}>{p.name.split(" ")[0]}</span>
+            {!short && <span className="hidden sm:inline">{p.name}</span>}
           </button>
         );
       })}
@@ -52,11 +52,11 @@ export function DemoHeader() {
         >
           <FlaskConical className="size-3" /> Demo mode
         </span>
-        {path !== "/demo" && (
-          <Link href="/demo" className="rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground">
-            Open demo
-          </Link>
-        )}
+        <nav className="flex items-center gap-1 text-sm">
+          <Link href="/" className="rounded-md px-2.5 py-1.5 text-muted-foreground hover:bg-accent hover:text-foreground">Home</Link>
+          <Link href="/meetings" className="hidden rounded-md px-2.5 py-1.5 text-muted-foreground hover:bg-accent hover:text-foreground sm:inline">Meetings</Link>
+          {path === "/demo" && <span className="hidden rounded-md bg-accent px-2.5 py-1.5 font-medium sm:inline">Analysis &amp; sign-off</span>}
+        </nav>
         <div className="ml-auto flex items-center gap-2">
           <span className="hidden text-xs text-muted-foreground lg:inline">Viewing as</span>
           <PersonaToggle />

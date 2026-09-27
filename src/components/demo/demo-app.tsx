@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { FileSignature, History, Lock, PenLine, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
@@ -22,9 +23,9 @@ const TABS = [
 ] as const;
 type Tab = (typeof TABS)[number]["key"];
 
-export function DemoApp() {
+export function DemoApp({ initialTab }: { initialTab?: string }) {
   const { state, persona, ready } = useDemo();
-  const [tab, setTab] = useState<Tab>("meeting");
+  const [tab, setTab] = useState<Tab>(() => (TABS.some((t) => t.key === initialTab) ? (initialTab as Tab) : "meeting"));
   const me = DEMO_PEOPLE[persona];
   const side = SIDES[me.side];
   const awaitingMe = state.items.filter((i) => i.status === "partially_signed" && !i.signatures.some((s) => s.version === i.currentVersion && s.side === me.side)).length;
@@ -49,6 +50,7 @@ export function DemoApp() {
             <span>{state.meetings.find((m) => m.key === "m3")?.title} · {fmtDateTime(state.meetings.find((m) => m.key === "m3")?.date)}</span>
             {awaitingMe > 0 && <span className="text-warning">{awaitingMe} awaiting your signature</span>}
             {forMe > 0 && <span className="text-warning">{forMe} question{forMe > 1 ? "s" : ""} for your side</span>}
+            <Link href="/meetings/m3" className="underline-offset-4 hover:text-foreground hover:underline">Meeting notes →</Link>
           </p>
           <nav className="-mb-px mt-3 flex gap-1 overflow-x-auto" aria-label="Demo sections">
             {TABS.map((t) => (
@@ -152,7 +154,7 @@ function priority(i: DemoItem, mySide: "A" | "B"): number {
 
 const ORDER: ItemStatus[] = ["partially_signed", "needs_clarification", "clarified", "proposed", "committed", "declined"];
 
-function CommitmentsView() {
+export function CommitmentsView() {
   const { state } = useDemo();
   const [filter, setFilter] = useState<ItemStatus | "all">("all");
   const items = state.items.filter((i) => SIGNABLE_KINDS.includes(i.kind));

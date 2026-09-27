@@ -1,4 +1,5 @@
 import type { DemoUserKey } from "@/lib/setup/demo-ids";
+import type { MeetingRecord } from "@/lib/meetings/types";
 
 export type SideKey = "A" | "B";
 export type PersonaKey = "maya" | "luca";
@@ -173,7 +174,7 @@ export interface ScanResult {
 }
 
 export interface DemoState {
-  schema: 1;
+  schema: 2;
   createdAt: string;
   meetings: DemoMeeting[];
   segments: DemoSegment[];
@@ -185,4 +186,6 @@ export interface DemoState {
   events: DemoEvent[];
   scan: ScanResult | null;
   dismissedFlags: string[];
+  /** Meeting notes shown on Home and Meetings (samples plus meetings created in the browser). */
+  library: MeetingRecord[];
 }

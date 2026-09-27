@@ -4,6 +4,7 @@
  * every date relative to "today".
  */
 import { SAMPLE_TRANSCRIPTS } from "@/lib/sample/wildframe-aurel";
+import { sampleRecords } from "@/lib/meetings/sample";
 import { deriveStatus } from "./engine";
 import { hashVersion } from "./hash";
 import { PEOPLE, SIDES } from "./people";
@@ -261,7 +262,7 @@ export function initialDemoState(now: Date = new Date()): DemoState {
   });
 
   const base: DemoState = {
-    schema: 1, createdAt: now.toISOString(), meetings, segments, items, clarifications,
+    schema: 2, createdAt: now.toISOString(), meetings, segments, items, clarifications, library: sampleRecords(now),
     goals: [
       { id: "g-premiere", side: null, private: false, title: "Launch Season 3 with a co-branded premiere in Geneva", criteria: "Premiere hosted by Aurel in late January 2027; both brands on all launch materials.", progress: 55, status: "on_track", summary: "Date and host agreed. The early “Q1” mismatch was caught and resolved. Guest list and press plan are open." },
       { id: "g-schedule", side: "A", private: false, title: "Deliver all branded content on schedule", criteria: "Every vignette reaches Aurel on or before its signed date.", progress: 45, status: "at_risk", summary: "Episode 1 rough cut arrived 3 days late; weather is a known risk for vignettes 2–4." },

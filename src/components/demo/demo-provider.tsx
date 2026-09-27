@@ -44,6 +44,13 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [notice, setNotice] = useState<DemoContextValue["notice"]>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The latest state, so back-to-back updates (e.g. a scan finishing just before a click) never overwrite each other.
+  const latest = useRef(state);
+  const commit = useCallback((next: DemoState) => {
+    latest.current = next;
+    write(STATE_KEY, next);
+    setStateRaw(next);
+  }, []);
 
   // Load saved state after mount (the server render always uses the fresh sample).
   useEffect(() => {
@@ -56,13 +63,24 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       }
     })();
     /* eslint-disable react-hooks/set-state-in-effect -- hydrating from browser storage */
-    if (saved?.schema === 1) setStateRaw(saved);
+    const restored =
+      saved?.schema === 2 ? saved
+      // Older saves (before meeting notes existed) keep their sign-offs and gain the sample library.
+      : (saved as { schema?: number } | null)?.schema === 1 ? { ...saved!, schema: 2 as const, library: initialDemoState().library }
+      : null;
+    if (restored) {
+      latest.current = restored;
+      setStateRaw(restored);
+    }
     if (savedPersona === "maya" || savedPersona === "luca") setPersonaRaw(savedPersona);
     setReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
     // Keep other tabs in sync (e.g. Maya in one tab, Luca in another).
     const onStorage = (e: StorageEvent) => {
-      if (e.key === STATE_KEY && e.newValue) setStateRaw(JSON.parse(e.newValue) as DemoState);
+      if (e.key === STATE_KEY && e.newValue) {
+        latest.current = JSON.parse(e.newValue) as DemoState;
+        setStateRaw(latest.current);
+      }
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
@@ -74,19 +92,11 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     timer.current = setTimeout(() => setNotice(null), 3500);
   }, []);
 
-  const setState = useCallback((fn: (s: DemoState) => DemoState) => {
-    setStateRaw((prev) => {
-      const next = fn(prev);
-      write(STATE_KEY, next);
-      return next;
-    });
-  }, []);
+  const setState = useCallback((fn: (s: DemoState) => DemoState) => commit(fn(latest.current)), [commit]);
 
   const act = useCallback<DemoContextValue["act"]>((fn, success) => {
     try {
-      const next = fn(state, persona);
-      write(STATE_KEY, next);
-      setStateRaw(next);
+      commit(fn(latest.current, persona));
       if (success) flash(success, "ok");
       return null;
     } catch (err) {
@@ -94,7 +104,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       flash(message, "error");
       return message;
     }
-  }, [state, persona, flash]);
+  }, [persona, flash, commit]);
 
   const setPersona = useCallback((p: PersonaKey) => {
     setPersonaRaw(p);
@@ -102,11 +112,9 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const reset = useCallback(() => {
-    const fresh = initialDemoState();
-    write(STATE_KEY, fresh);
-    setStateRaw(fresh);
+    commit(initialDemoState());
     flash("Demo reset to the original sample.", "ok");
-  }, [flash]);
+  }, [flash, commit]);
 
   const value = useMemo(
     () => ({ ready, state, persona, setPersona, act, setState, reset, notice }),

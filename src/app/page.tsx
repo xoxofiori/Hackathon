@@ -6,7 +6,8 @@ import { SubmitButton } from "@/components/app/submit-button";
 import { DEMO_PERSONAS } from "@/lib/setup/demo-ids";
 import { getSession } from "@/lib/data/session";
 import { demoSignIn } from "@/app/auth/actions";
-import { DemoEntryButtons } from "@/components/demo/demo-entry";
+import { WorkspaceShell } from "@/components/workspace/shell";
+import { HomeDashboard } from "@/components/workspace/home-dashboard";
 import { isDemoMode } from "@/lib/mode";
 
 const FEATURES = [
@@ -21,7 +22,15 @@ const FEATURES = [
 export default async function Home({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
   const demo = isDemoMode();
-  const { user } = demo ? { user: null } : await getSession();
+  // Demo mode: the home dashboard is the landing page.
+  if (demo) {
+    return (
+      <WorkspaceShell>
+        <HomeDashboard />
+      </WorkspaceShell>
+    );
+  }
+  const { user } = await getSession();
   return (
     <main>
       <section className="mx-auto grid max-w-7xl gap-10 px-4 pt-16 pb-12 lg:grid-cols-[1.2fr_1fr] lg:pt-24">
@@ -50,42 +59,31 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
             Wildframe Media × Aurel Watches, negotiating a Season 3 sponsorship. Sign in as either side and see what
             each one can — and can&apos;t — see.
           </p>
-          {demo ? (
-            <DemoEntryButtons />
-          ) : (
           <div className="mt-5 flex flex-col gap-3">
-              {DEMO_PERSONAS.map((p) => (
-                <form key={p.key} action={demoSignIn}>
-                  <input type="hidden" name="persona" value={p.key} />
-                  <SubmitButton
-                    variant="outline"
-                    className="h-auto w-full justify-start gap-3 py-3 text-left whitespace-normal"
-                    pendingText="Signing in…"
-                  >
-                    <span className="size-3 shrink-0 rounded-full" style={{ backgroundColor: p.color }} />
-                    <span className="flex flex-col">
-                      <span className="font-medium">Enter demo as {p.label}</span>
-                      <span className="text-xs font-normal text-muted-foreground">{p.subtitle}</span>
-                    </span>
-                    <ArrowRight className="ml-auto" />
-                  </SubmitButton>
-                </form>
-              ))}
-            </div>
-          )}
+            {DEMO_PERSONAS.map((p) => (
+              <form key={p.key} action={demoSignIn}>
+                <input type="hidden" name="persona" value={p.key} />
+                <SubmitButton
+                  variant="outline"
+                  className="h-auto w-full justify-start gap-3 py-3 text-left whitespace-normal"
+                  pendingText="Signing in…"
+                >
+                  <span className="size-3 shrink-0 rounded-full" style={{ backgroundColor: p.color }} />
+                  <span className="flex flex-col">
+                    <span className="font-medium">Enter demo as {p.label}</span>
+                    <span className="text-xs font-normal text-muted-foreground">{p.subtitle}</span>
+                  </span>
+                  <ArrowRight className="ml-auto" />
+                </SubmitButton>
+              </form>
+            ))}
+          </div>
           <div className="mt-4">
             <FormMessage error={error} />
           </div>
-          {demo ? (
-            <p className="mt-4 text-xs text-muted-foreground">
-              Runs entirely in your browser with built-in sample data — no accounts or setup. Your sign-offs and notes are
-              saved on this device. Switch between Maya and Luca any time from the header.
-            </p>
-          ) : (
-            <p className="mt-4 text-xs text-muted-foreground">
-              Or <Link href="/signup" className="underline">create your own account</Link> and start a partnership.
-            </p>
-          )}
+          <p className="mt-4 text-xs text-muted-foreground">
+            Or <Link href="/signup" className="underline">create your own account</Link> and start a partnership.
+          </p>
         </div>
       </section>
       <section className="mx-auto max-w-7xl px-4 pb-24">

@@ -78,7 +78,14 @@
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-serif-display), ui-serif, Georgia, serif;
 }
+
+@keyframes flash-line {
+  0%, 60% { box-shadow: 0 0 0 2px var(--ring); background-color: color-mix(in oklch, var(--warning) 22%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.animate-flash { animation: flash-line 1.6s ease-out; }
 
 @layer base {
   * {

@@ -15,7 +15,22 @@ npm install
 npm run dev          # http://localhost:3000 — no Supabase, no env variables
 ```
 
-Demo mode is the default. It runs entirely in the browser with the built-in Wildframe × Aurel sample meeting:
+Demo mode is the default. It runs entirely in the browser with the built-in Wildframe × Aurel sample meetings:
+
+- **Home** (`/`): greeting, a big **New Meeting** button, what needs your attention, and recent meetings with AI
+  summary lines. Sidebar: Home, Meetings, Commitments, Settings.
+- **New Meeting** (`/meetings/new`): name the meeting and paste a transcript (`Name: text` per line, timestamps
+  optional) or upload audio. **Use sample meeting** loads the Maya/Luca transcript so a demo never depends on live
+  input. A short loading state, then the meeting page opens.
+- **Meeting page** (`/meetings/[id]`): keyword filter chips on the left (Deadlines, Owners, Metrics, Pushback, Soft
+  yes, plus your own keywords) that highlight every match in the notes and transcript and list the moments —
+  click one to jump to it; notes in the middle (Summary, Decisions, Action Items with owner and deadline, Open
+  Questions); the transcript on the right. **View Analysis** opens the existing analysis and sign-off room (`/demo`).
+- **Notes without an API key**: the sample meetings use pre-generated notes and filters; pasted transcripts get
+  basic rule-based notes (clearly labelled). With `ANTHROPIC_API_KEY`, notes come from `claude-opus-5-5`. Audio upload
+  needs `DEEPGRAM_API_KEY`; without it the page says so and offers the sample meeting.
+
+The analysis and sign-off room (`/demo`):
 
 - **Switch between Maya Chen (Wildframe) and Luca Brunner (Aurel)** with the toggle in the header — same window.
   Each side sees its own private goals, must-get answers and notes, never the other side's.
@@ -96,7 +111,7 @@ The database is the enforcement point, not the UI:
 
 ```bash
 npm test               # demo engine rules + database rule tests (RLS, sign-off, immutability, consent) — DB tests need a seeded DB
-npm run build && npm run test:e2e   # Playwright, demo mode: sign-offs, pushbacks, persona toggle, privacy, persistence
+npm run build && npm run test:e2e   # Playwright, demo mode: home, new meeting, meeting page filters, sign-offs, pushbacks, privacy
 npm run test:e2e:live  # Playwright, live mode: demo sign-in and create → invite → claim (needs ACCORD_MODE=live npm run dev)
 npm run lint && npm run typecheck
 ```
@@ -109,7 +124,10 @@ src/lib/setup/               Schema apply + demo seed (used by /setup and `npm r
 src/lib/sample/              The Wildframe × Aurel transcripts, shared by the seed and demo mode
 src/lib/demo/                Demo mode: sample state, sign-off engine (mirrors the SQL rules), pre-generated flags
 src/lib/ai/                  Claude calls (ambiguity scan, Zod-validated structured output)
-src/components/demo/         Demo UI: persona toggle, transcript + flags, clarification queue, sign-off cards
+src/components/demo/         Analysis & sign-off room: persona toggle, transcript + flags, clarification queue, sign-off cards
+src/components/workspace/    Sidebar shell, Home dashboard, Settings
+src/components/meetings/     New Meeting flow, meeting cards, meeting notes page (filters · notes · transcript)
+src/lib/meetings/            Transcript parsing, keyword matching, sample + rule-based notes
 src/lib/supabase/            Server (user session), browser and admin (service-role) clients
 src/lib/data/                Server-side data access (always through the user's session → RLS)
 src/proxy.ts                 Session refresh + auth gate (Next.js 16 "proxy", formerly middleware)
