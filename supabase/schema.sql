@@ -620,6 +620,25 @@ create table if not exists activity_log (
 );
 create index if not exists activity_partnership_idx on activity_log (partnership_id, at desc);
 
+-- Profile foreign keys (in addition to auth.users) so the API can embed people.
+do $$
+declare r record;
+begin
+  for r in select * from (values
+    ('side_members','user_id'), ('org_members','user_id'), ('meeting_participants','user_id'),
+    ('tasks','assignee_id'), ('signatures','user_id'), ('transcript_segments','speaker_user_id'),
+    ('item_versions','owner_user_id'), ('clarifications','asked_to_user_id'), ('clarifications','answered_by'),
+    ('side_messages','user_id'), ('pulses','user_id'), ('meetings','host_id'), ('activity_log','actor_id'),
+    ('invites','created_by'), ('memory_entries','created_by')) as t(tbl, col)
+  loop
+    begin
+      execute format('alter table %I add constraint %I foreign key (%I) references profiles (id)',
+                     r.tbl, r.tbl || '_' || r.col || '_profile_fk', r.col);
+    exception when duplicate_object then null;
+    end;
+  end loop;
+end $$;
+
 -- =============================================================================
 -- Membership helpers (SECURITY DEFINER so RLS policies can call them without
 -- recursing into side_members' own policies).

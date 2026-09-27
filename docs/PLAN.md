@@ -78,7 +78,7 @@ can_read(partnership_id, visibility, side_id) :=
 | `health_notes` | partnership_id, meeting_id?, side_id?, visibility, sentiment (working/not_working/watch), category, title, body, evidence | shared or private |
 | `partner_profiles` | partnership_id, about_side_id, written_by_side_id?, visibility, communication_style, preferences, do/don't notes | shared or private |
 | `memory_entries` | partnership_id?, organization_id?, side_id?, visibility, kind (correction/glossary/preference/pattern), term, content, source, source_ref, embedding vector(1024), archived_at | shared or private |
-| `notifications` | user_id, kind, title, body, link, read_at, emailed_at | own rows only |
+| `notifications` | user_id, kind, ref_id, title, body, link, read_at, emailed_at | own rows only |
 | `share_links` | partnership_id, token, scope (shared data only), expires_at, revoked_at | owners |
 | `deletion_requests` | partnership_id, side_id, requested_by, approved_at, execute_after | owners |
 | `activity_log` | partnership_id, actor_id, action, entity, entity_id, side_id?, visibility, data jsonb, at — **append-only** (UPDATE/DELETE blocked by trigger) | follows visibility |
@@ -100,7 +100,7 @@ Integrity rules enforced in the database (and tested):
 
 | # | Phase | Status |
 |---|---|---|
-| 1 | Foundation: schema, RLS, auth, profiles, orgs, sides, partnerships, invites, roles, seed, `/setup` | **this commit** |
+| 1 | Foundation: schema, RLS, auth, profiles, orgs, sides, partnerships, invites, roles, seed, `/setup` | **done** — 50 DB rule tests + e2e invite flow |
 | 2 | Partnership Hub skeleton (Commitments, Tasks, Timeline, Goals, Health, Meetings, Export) | next |
 | 3 | Meeting Prep + AI prep suggestions | |
 | 4 | Live Meeting Room (LiveKit, consent, transcript, live extraction, clarifications, sign-off) | |
