@@ -1,10 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isDemoMode } from "@/lib/mode";
 
 const PROTECTED = ["/partnerships", "/p/", "/onboarding", "/profile"];
+/** Routes that need Supabase; in demo mode they send people to the in-browser demo instead. */
+const LIVE_ONLY = [...PROTECTED, "/login", "/signup", "/invite", "/setup", "/auth"];
 
-/** Refreshes the Supabase session cookie on every request and gates app routes. */
+/** Demo mode: route live-only pages to /demo. Live mode: refresh the Supabase session and gate app routes. */
 export async function proxy(request: NextRequest) {
+  if (isDemoMode()) {
+    if (LIVE_ONLY.some((p) => request.nextUrl.pathname.startsWith(p))) {
+      return NextResponse.redirect(new URL("/demo", request.url));
+    }
+    return NextResponse.next();
+  }
   let response = NextResponse.next({ request });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

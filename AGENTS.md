@@ -16,3 +16,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   client is only for setup, seeding and background jobs.
 - Business rules (signing, amending, invites) live in SECURITY DEFINER SQL functions; call them via `rpc`.
 - After schema changes: `npm run db:reset && npm test`. Run `npm run lint && npm run typecheck` before committing.
+- Demo mode (`ACCORD_MODE` unset or `demo`) needs no env and never touches Supabase. Its rules live in
+  `src/lib/demo/engine.ts` and must stay in step with the SQL functions; `tests/demo` covers them.

@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/app/site-header";
+import { DemoHeader } from "@/components/demo/demo-header";
+import { DemoProvider } from "@/components/demo/demo-provider";
+import { isDemoMode } from "@/lib/mode";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -24,8 +27,17 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} min-h-dvh font-sans`}>
-        <SiteHeader />
-        {children}
+        {isDemoMode() ? (
+          <DemoProvider>
+            <DemoHeader />
+            {children}
+          </DemoProvider>
+        ) : (
+          <>
+            <SiteHeader />
+            {children}
+          </>
+        )}
       </body>
     </html>
   );
