@@ -60,7 +60,7 @@ export function HomeDashboard() {
           <Link href="/demo" className="flex flex-col gap-1 rounded-3xl p-5 transition-shadow hover:shadow-md" style={{ backgroundColor: `color-mix(in oklch, ${SIDES.B.color} 14%, var(--card))` }}>
             <span className="flex items-center gap-2 text-sm font-medium"><FileSignature className="size-4" /> Awaiting your signature</span>
             <span className="text-3xl font-semibold tabular-nums">{awaiting}</span>
-            <span className="text-xs text-muted-foreground">Open the sign-off room →</span>
+            <span className="text-xs text-muted-foreground">Review and approve →</span>
           </Link>
           <Link href="/demo" className="flex flex-col gap-1 rounded-3xl p-5 transition-shadow hover:shadow-md" style={{ backgroundColor: `color-mix(in oklch, ${SIDES.A.color} 12%, var(--card))` }}>
             <span className="flex items-center gap-2 text-sm font-medium"><MessageCircleQuestion className="size-4" /> Questions for {side.label}</span>

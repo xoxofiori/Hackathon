@@ -25,21 +25,22 @@ Demo mode is the default. It runs entirely in the browser with the built-in Wild
 - **Meeting page** (`/meetings/[id]`): keyword filter chips on the left (Deadlines, Owners, Metrics, Pushback, Soft
   yes, plus your own keywords) that highlight every match in the notes and transcript and list the moments —
   click one to jump to it; notes in the middle (Summary, Decisions, Action Items with owner and deadline, Open
-  Questions); the transcript on the right. **View Analysis** opens the existing analysis and sign-off room (`/demo`).
+  Questions); the transcript on the right. **View Analysis** opens the Analysis page (`/demo`).
 - **Notes without an API key**: the sample meetings use pre-generated notes and filters; pasted transcripts get
   basic rule-based notes (clearly labelled). With `ANTHROPIC_API_KEY`, notes come from `claude-opus-5-5`. Audio upload
   needs `DEEPGRAM_API_KEY`; without it the page says so and offers the sample meeting.
 
-The analysis and sign-off room (`/demo`):
+The **Analysis** page (`/demo`, "View Analysis" on a meeting) and **Commitments** (`/commitments`) use the same design:
 
-- **Switch between Maya Chen (Wildframe) and Luca Brunner (Aurel)** with the toggle in the header — same window.
-  Each side sees its own private goals, must-get answers and notes, never the other side's.
-- **Sign-offs and pushbacks work**: sign for your side, answer clarifications, ask the other side a question, propose
-  new wording (or an amendment to a committed item), or decline. The same rules as the database apply — no signing
-  while a clarification is open, Committed only when both sides signed the same version, signed versions never change.
-- **Ambiguity flags**: the transcript is scanned for soft asks, vague timing, unclear owners and loose scope. With
-  `ANTHROPIC_API_KEY` set, the scan runs live on Claude (`claude-sonnet-5`); without it, pre-generated flags for the
-  sample transcript are used. Any flag can be raised as a clarification.
+- **One list of commitment cards** — what, who, when — grouped as *Needs your decision*, *Waiting on the other side*
+  and *Approved & closed*, each with a colored tag: **Pending**, **Approved** or **Pushed back**.
+- **Approve / Push back**: approve for your side, or push back by asking a question, suggesting new wording, or
+  declining. Questions are answered right on the card. The database rules still apply — nothing can be approved
+  while a question is open, Approved means both sides approved the same wording, and changes to approved terms keep
+  the original in force until both sides approve the change.
+- **Side panel**: a short to-do list for the viewer's company only (answers and approvals it owes, plus its tasks),
+  sorted by deadline and checkable, and that company's goals. Switch between Maya (Wildframe) and Luca (Aurel) in
+  the sidebar to see the other side's version.
 - Changes are saved in this browser (`localStorage`) and survive reloads. The reset button restores the sample.
   This browser storage is for the demo only — live mode keeps everything server-side.
 
@@ -122,9 +123,10 @@ npm run lint && npm run typecheck
 supabase/schema.sql          Unified schema, triggers, rule functions and RLS (single source of truth)
 src/lib/setup/               Schema apply + demo seed (used by /setup and `npm run db:setup`)
 src/lib/sample/              The Wildframe × Aurel transcripts, shared by the seed and demo mode
-src/lib/demo/                Demo mode: sample state, sign-off engine (mirrors the SQL rules), pre-generated flags
+src/lib/demo/                Demo mode: sample state, sign-off engine (mirrors the SQL rules), approvals and to-dos
 src/lib/ai/                  Claude calls (ambiguity scan, Zod-validated structured output)
-src/components/demo/         Analysis & sign-off room: persona toggle, transcript + flags, clarification queue, sign-off cards
+src/components/approvals/     Analysis & Commitments: commitment cards (approve / push back), company to-do panel
+src/components/demo/         Demo state provider (browser storage)
 src/components/workspace/    Sidebar shell, Home dashboard, Settings
 src/components/meetings/     New Meeting flow, meeting cards, meeting notes page (filters · notes · transcript)
 src/lib/meetings/            Transcript parsing, keyword matching, sample + rule-based notes

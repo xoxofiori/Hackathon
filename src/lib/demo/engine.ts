@@ -223,3 +223,13 @@ export function dismissFlag(state: DemoState, persona: PersonaKey, flagId: strin
   if (state.dismissedFlags.includes(flagId)) return state;
   return log({ ...state, dismissedFlags: [...state.dismissedFlags, flagId] }, persona, "marked an ambiguity flag as not an issue");
 }
+
+/** People check off their own side's tasks. */
+export function toggleTask(state: DemoState, persona: PersonaKey, taskId: string): DemoState {
+  const me = personOf(persona);
+  const task = state.tasks.find((t) => t.id === taskId);
+  if (!task) throw new DemoRuleError("That task no longer exists.");
+  if (task.side !== me.side) throw new DemoRuleError("You can only update your own side's tasks.");
+  const next = { ...state, tasks: state.tasks.map((t) => (t.id === taskId ? { ...t, done: !t.done } : t)) };
+  return log(next, persona, `${task.done ? "reopened" : "completed"} “${task.title}”`, { private: true });
+}

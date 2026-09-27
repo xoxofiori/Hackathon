@@ -63,11 +63,13 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       }
     })();
     /* eslint-disable react-hooks/set-state-in-effect -- hydrating from browser storage */
-    const restored =
-      saved?.schema === 2 ? saved
-      // Older saves (before meeting notes existed) keep their sign-offs and gain the sample library.
-      : (saved as { schema?: number } | null)?.schema === 1 ? { ...saved!, schema: 2 as const, library: initialDemoState().library }
-      : null;
+    // Older saves keep their sign-offs and gain whatever the sample added since (meeting library, tasks).
+    const version = (saved as { schema?: number } | null)?.schema;
+    const restored: DemoState | null =
+      version === 3 ? saved
+      : version === 1 || version === 2
+        ? { ...initialDemoState(), ...saved!, ...(version === 1 ? { library: initialDemoState().library } : {}), schema: 3, tasks: initialDemoState().tasks }
+        : null;
     if (restored) {
       latest.current = restored;
       setStateRaw(restored);

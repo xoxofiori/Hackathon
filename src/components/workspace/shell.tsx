@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FileSignature, FlaskConical, Home, NotebookText, RotateCcw, Settings } from "lucide-react";
 import { Logo } from "@/components/app/logo";
-import { PersonaToggle } from "@/components/demo/demo-header";
+import { PersonaToggle } from "./persona-toggle";
 import { useDemo } from "@/components/demo/demo-provider";
 import { Avatar } from "@/components/ui/avatar";
 import { DEMO_PEOPLE, SIDES } from "@/lib/demo/people";
@@ -17,7 +17,9 @@ export const NAV = [
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
-const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+// The Analysis page belongs to a meeting, so it highlights Meetings.
+const isActive = (path: string, href: string) =>
+  href === "/" ? path === "/" : path.startsWith(href) || (href === "/meetings" && path.startsWith("/demo"));
 
 export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();

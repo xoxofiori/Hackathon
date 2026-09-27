@@ -49,7 +49,7 @@ test("meeting page: chips highlight transcript and notes, timestamps scroll, cus
 
   await page.getByRole("link", { name: "View Analysis" }).click();
   await expect(page).toHaveURL(/\/demo$/);
-  await expect(page.getByRole("heading", { name: "Clarification queue" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Needs your decision" })).toBeVisible();
 });
 
 test("new meeting: sample transcript → loading → meeting page", async ({ page }) => {

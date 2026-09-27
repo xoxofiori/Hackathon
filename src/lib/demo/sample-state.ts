@@ -262,7 +262,8 @@ export function initialDemoState(now: Date = new Date()): DemoState {
   });
 
   const base: DemoState = {
-    schema: 2, createdAt: now.toISOString(), meetings, segments, items, clarifications, library: sampleRecords(now),
+    schema: 3, createdAt: now.toISOString(), meetings, segments, items, clarifications, library: sampleRecords(now),
+    tasks: sampleTasks(d),
     goals: [
       { id: "g-premiere", side: null, private: false, title: "Launch Season 3 with a co-branded premiere in Geneva", criteria: "Premiere hosted by Aurel in late January 2027; both brands on all launch materials.", progress: 55, status: "on_track", summary: "Date and host agreed. The early “Q1” mismatch was caught and resolved. Guest list and press plan are open." },
       { id: "g-schedule", side: "A", private: false, title: "Deliver all branded content on schedule", criteria: "Every vignette reaches Aurel on or before its signed date.", progress: 45, status: "at_risk", summary: "Episode 1 rough cut arrived 3 days late; weather is a known risk for vignettes 2–4." },
@@ -294,6 +295,27 @@ export function initialDemoState(now: Date = new Date()): DemoState {
     dismissedFlags: [],
   };
   return { ...base, items: base.items.map((i) => ({ ...i, status: deriveStatus(base, i) })) };
+}
+
+/** The same delivery tasks as the database seed, per side. */
+function sampleTasks(d: (offset: number) => string): DemoState["tasks"] {
+  const t = (id: string, title: string, side: SideKey, owner: string, due: number | null, done = false, itemId: string | null = null) =>
+    ({ id, title, side, owner, due: due === null ? null : d(due), done, itemId });
+  return [
+    t("t-cue", "Share the music cue sheet for episode 1", "A", "Jordan Okafor", -2),
+    t("t-travel", "Book Patagonia crew travel", "A", "Priya Nair", 3, false, "prototypes"),
+    t("t-fallback", "Prepare a fallback if the prototypes arrive late", "A", "Maya Chen", 6, false, "prototypes"),
+    t("t-v1", "Vignette 1 — Night Sky (episode 2)", "A", "Jordan Okafor", 10, false, "vignettes"),
+    t("t-v2", "Vignette 2 — Glacier (episode 4)", "A", "Jordan Okafor", 40, false, "vignettes"),
+    t("t-invoice2", "Invoice instalment 2 on episode 4 delivery", "A", "Maya Chen", 75, false, "fee"),
+    t("t-roughcut", "Deliver the episode 1 rough cut", "A", "Priya Nair", -12, true, "roughcut"),
+    t("t-logo", "Send Aurel logo lockups for the end credits", "B", "Sophie Keller", -6, false, "credits"),
+    t("t-legal", "Finish the legal review of the sponsorship addendum", "B", "Hiroshi Tanaka", -3, false, "fee"),
+    t("t-ceo", "Brief the CEO on Season 3 ROI", "B", "Luca Brunner", 4),
+    t("t-ship", "Ship two watch prototypes to Buenos Aires", "B", "Sophie Keller", 8, false, "prototypes"),
+    t("t-guests", "Draft the premiere guest list", "B", "Luca Brunner", 20, false, "premiere"),
+    t("t-pay1", "Pay instalment 1 (CHF 600,000)", "B", "Sophie Keller", -40, true, "fee"),
+  ];
 }
 
 export const sideLabel = (s: SideKey | null) => (s ? SIDES[s].label : "Joint");

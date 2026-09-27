@@ -173,8 +173,19 @@ export interface ScanResult {
   flags: AmbiguityFlagView[];
 }
 
+export interface DemoTask {
+  id: string;
+  title: string;
+  side: SideKey;
+  owner: string;
+  due: string | null;
+  done: boolean;
+  /** The commitment this task delivers, if any. */
+  itemId: string | null;
+}
+
 export interface DemoState {
-  schema: 2;
+  schema: 3;
   createdAt: string;
   meetings: DemoMeeting[];
   segments: DemoSegment[];
@@ -188,4 +199,5 @@ export interface DemoState {
   dismissedFlags: string[];
   /** Meeting notes shown on Home and Meetings (samples plus meetings created in the browser). */
   library: MeetingRecord[];
+  tasks: DemoTask[];
 }

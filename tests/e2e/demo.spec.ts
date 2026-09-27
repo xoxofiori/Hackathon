@@ -1,65 +1,88 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const card = (page: Page, id: string) => page.locator(`#item-${id}`);
+const section = (page: Page, name: string | RegExp) => page.getByRole("region", { name });
 
-test("demo mode: sign-offs, pushbacks, persona toggle, privacy and persistence — all in the browser", async ({ page }) => {
+test("analysis: approve / push back, company-only to-dos, persona switch, persistence", async ({ page }) => {
   await page.goto("/demo");
-  await page.getByRole("radio", { name: /Luca Brunner/ }).click();
-  await expect(page.getByText("You're Luca Brunner on Aurel Watches")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Budget & deliverables sign-off");
+  await page.getByRole("radio", { name: "Luca" }).click();
 
-  // Pre-generated ambiguity flags (no API key in this environment).
-  await expect(page.getByText("Pre-generated flags")).toBeVisible();
-  await expect(page.getByText("Scope unclear").first()).toBeVisible();
-
-  // Aurel's private panel: its own goals, never Wildframe's.
-  await expect(page.getByText("Reach 5M views of Aurel-branded content")).toBeVisible();
+  // Side panel: Aurel's to-dos and goals only.
+  const panel = page.getByRole("complementary", { name: "Aurel Watches to-dos" });
+  await expect(panel.getByText("Only Aurel Watches sees this")).toBeVisible();
+  await expect(panel.getByText("Send Aurel logo lockups for the end credits")).toBeVisible();
+  await expect(panel.getByText("Reach 5M views of Aurel-branded content")).toBeVisible();
+  await expect(page.getByText("Share the music cue sheet for episode 1")).toHaveCount(0);
   await expect(page.getByText("Protect editorial independence")).toHaveCount(0);
+  await expect(panel.getByRole("listitem").first()).toContainText("Answer:"); // blocking answers first
 
-  // Luca countersigns the prototypes → committed.
-  await card(page, "prototypes").getByRole("button", { name: "Sign for Aurel Watches" }).click();
-  await expect(card(page, "prototypes").getByText("Committed").first()).toBeVisible();
+  // Approve a pending commitment Wildframe already approved → Approved.
+  const needs = section(page, "Needs your decision");
+  await expect(card(page, "prototypes").getByText("Pending")).toBeVisible();
+  await expect(card(page, "prototypes")).toContainText("Sophie Keller");
+  await card(page, "prototypes").getByRole("button", { name: "Approve" }).click();
+  await expect(page.getByRole("status")).toHaveText("Approved for Aurel Watches.");
+  await expect(needs.locator("#item-prototypes")).toHaveCount(0);
+  await page.getByText(/Approved & closed/).click();
+  await expect(card(page, "prototypes").getByText("Approved", { exact: true })).toBeVisible();
 
-  // "Footage by spring" can't be signed until its clarification is answered.
-  await expect(card(page, "footage").getByRole("button", { name: "Sign for Aurel Watches" })).toBeDisabled();
-  const queue = page.locator("article", { hasText: "it would be nice to have the footage by spring" }).filter({ has: page.getByRole("button", { name: "Answer and resolve" }) });
-  await queue.getByLabel("Your answer").fill("Firm: by 20 March 2027.");
-  await queue.getByRole("button", { name: "Answer and resolve" }).click();
-  await card(page, "footage").getByRole("button", { name: "Sign for Aurel Watches" }).click();
-  await expect(card(page, "footage").getByText("Signed by one side").first()).toBeVisible();
+  // A pushed-back card can't be approved until Aurel answers the question on it.
+  const footage = card(page, "footage");
+  await expect(footage.getByText("Pushed back")).toBeVisible();
+  await expect(footage.getByRole("button", { name: "Approve" })).toBeDisabled();
+  await footage.getByRole("button", { name: "Firm: by 20 March 2027" }).click();
+  await footage.getByRole("button", { name: "Send answer" }).click();
+  await footage.getByRole("button", { name: "Approve" }).click();
+  await expect(footage).toContainText("You approved · waiting for Wildframe Media.");
+  await expect(section(page, "Waiting on Wildframe Media").locator("#item-footage")).toHaveCount(1);
 
   // Switch to Maya in the same window.
-  await page.getByRole("radio", { name: /Maya Chen/ }).click();
-  await expect(page.getByText("You're Maya Chen on Wildframe Media")).toBeVisible();
-  await expect(page.getByText("Protect editorial independence")).toBeVisible();
-  await expect(page.getByText("Reach 5M views of Aurel-branded content")).toHaveCount(0);
-  await expect(page.getByText("We can live without final cut")).toHaveCount(0); // Aurel's private note
+  await page.getByRole("radio", { name: "Maya" }).click();
+  await expect(page.getByRole("complementary", { name: "Wildframe Media to-dos" })).toBeVisible();
+  await expect(page.getByText("Send Aurel logo lockups for the end credits")).toHaveCount(0);
+  await card(page, "footage").getByRole("button", { name: "Approve" }).click();
+  await expect(section(page, "Needs your decision").locator("#item-footage")).toHaveCount(0);
 
-  await card(page, "footage").getByRole("button", { name: "Sign for Wildframe Media" }).click();
+  // Push back with a question → Pushed back, now waiting on Aurel.
+  const bts = card(page, "bts");
+  await bts.getByRole("button", { name: "Push back" }).click();
+  await bts.getByLabel("Your question").fill("Can we agree on at least 40 images, delivered within two weeks?");
+  await bts.getByRole("button", { name: "Send question" }).click();
+  await expect(bts.getByText("Pushed back")).toBeVisible();
+  await expect(section(page, "Waiting on Aurel Watches").locator("#item-bts")).toHaveCount(1);
 
-  // Pushback: Maya raises the "150,000 francs" flag → the vignette amendment is blocked for Luca.
-  await page.locator("li", { hasText: "We can offer an additional 150,000 francs." }).getByRole("button", { name: "Ask Aurel Watches" }).click();
-  await expect(card(page, "vignettes").getByText("Needs clarification").first()).toBeVisible();
+  // Push back with new wording → Pending again, both sides approve the new version.
+  const premiere = card(page, "premiere");
+  await premiere.getByRole("button", { name: "Push back" }).click();
+  await premiere.getByRole("radio", { name: "Suggest new wording" }).click();
+  await premiere.getByLabel("New wording").fill("Aurel Watches hosts the Season 3 premiere in Geneva on 29 January 2027; Wildframe provides the screening copy.");
+  await premiere.getByRole("button", { name: "Propose change" }).click();
+  await expect(premiere).toContainText("on 29 January 2027");
+  await expect(premiere).toContainText("Needs approval from both sides.");
 
-  // Pushback: propose new wording on the photo package.
-  await card(page, "bts").getByRole("button", { name: "Propose changes" }).click();
-  await card(page, "bts").getByLabel("New wording").fill("Wildframe delivers at least 40 behind-the-scenes images to Aurel within two weeks of the shoot.");
-  await card(page, "bts").getByRole("button", { name: "Propose new wording" }).click();
-  await expect(card(page, "bts").getByText("v2").first()).toBeVisible();
+  // Check off a Wildframe task.
+  const wfPanel = page.getByRole("complementary", { name: "Wildframe Media to-dos" });
+  await wfPanel.getByRole("button", { name: "Complete: Share the music cue sheet for episode 1" }).click();
+  await expect(wfPanel.getByRole("button", { name: "Complete: Share the music cue sheet for episode 1" })).toHaveCount(0);
 
-  // Everything survives a reload (stored in the browser).
+  // Everything is saved in the browser.
   await page.reload();
-  await expect(page.getByText("You're Maya Chen on Wildframe Media")).toBeVisible();
-  await page.getByRole("button", { name: "Commitments" }).click();
-  await expect(card(page, "footage").getByText("Committed").first()).toBeVisible();
-  await page.getByRole("button", { name: "Meeting review" }).click();
-
-  await page.getByRole("radio", { name: /Luca Brunner/ }).click();
-  await expect(card(page, "vignettes").getByRole("button", { name: "Sign for Aurel Watches" })).toBeDisabled();
+  await page.getByText(/Approved & closed/).click();
+  await expect(card(page, "footage").getByText("Approved", { exact: true })).toBeVisible();
+  await expect(card(page, "bts").getByText("Pushed back")).toBeVisible();
 
   // Reset restores the sample.
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Reset demo data" }).click();
-  await expect(card(page, "prototypes").getByText("Signed by one side").first()).toBeVisible();
+  await expect(card(page, "prototypes").getByText("Pending")).toBeVisible();
+});
+
+test("commitments page uses the same cards for every commitment", async ({ page }) => {
+  await page.goto("/commitments");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Commitments");
+  await page.getByText(/Approved & closed/).click();
+  await expect(card(page, "fee").getByText("Approved", { exact: true })).toBeVisible();
 });
 
 test("demo mode: live-only routes send people to the demo", async ({ page }) => {
