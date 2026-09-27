@@ -184,8 +184,22 @@ export interface DemoTask {
   itemId: string | null;
 }
 
+export type IntegrationKey = "google_calendar" | "linear" | "notion";
+
+export interface IntegrationState {
+  connected: boolean;
+  connectedAt: string | null;
+}
+
+/** A Linear issue created from an approved commitment (demo: no real API call). */
+export interface LinearIssue {
+  key: string;
+  createdAt: string;
+  createdBy: string;
+}
+
 export interface DemoState {
-  schema: 4;
+  schema: 5;
   createdAt: string;
   meetings: DemoMeeting[];
   segments: DemoSegment[];
@@ -201,4 +215,7 @@ export interface DemoState {
   library: MeetingRecord[];
   tasks: DemoTask[];
   groups: MeetingGroup[];
+  integrations: Record<IntegrationKey, IntegrationState>;
+  /** Linear issues keyed by commitment (item) id. */
+  linearIssues: Record<string, LinearIssue>;
 }

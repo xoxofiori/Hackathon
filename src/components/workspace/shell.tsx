@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { FileSignature, FlaskConical, Home, NotebookText, Plus, RotateCcw, Settings } from "lucide-react";
+import { FileSignature, FlaskConical, Home, NotebookText, Plug, Plus, RotateCcw, Settings } from "lucide-react";
 import { createGroup } from "@/lib/meetings/groups";
 import { Logo } from "@/components/app/logo";
 import { PersonaToggle } from "./persona-toggle";
@@ -16,6 +16,7 @@ export const NAV = [
   { href: "/", label: "Home", icon: Home },
   { href: "/meetings", label: "Meetings", icon: NotebookText },
   { href: "/commitments", label: "Commitments", icon: FileSignature },
+  { href: "/integrations", label: "Integrations", icon: Plug },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
@@ -87,7 +88,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
       <main className="min-w-0 pb-20 md:pb-0">{children}</main>
 
       {/* Mobile bottom nav */}
-      <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t bg-card/95 backdrop-blur md:hidden">
+      <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t bg-card/95 backdrop-blur md:hidden">
         {NAV.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}

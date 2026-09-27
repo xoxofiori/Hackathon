@@ -12,6 +12,7 @@ import { hashVersion } from "./hash";
 
 export { hashVersion };
 import type {
+  IntegrationKey,
   AmbiguityFlagView, DeadlineStrength, DemoClarification, DemoItem, DemoState, DemoVersion, ItemStatus,
   PersonaKey, SideKey,
 } from "./types";
@@ -232,4 +233,25 @@ export function toggleTask(state: DemoState, persona: PersonaKey, taskId: string
   if (task.side !== me.side) throw new DemoRuleError("You can only update your own side's tasks.");
   const next = { ...state, tasks: state.tasks.map((t) => (t.id === taskId ? { ...t, done: !t.done } : t)) };
   return log(next, persona, `${task.done ? "reopened" : "completed"} “${task.title}”`, { private: true });
+}
+
+/** Demo only: flips the connection flag, no real OAuth or API calls. */
+export function setIntegration(state: DemoState, persona: PersonaKey, key: IntegrationKey, connected: boolean): DemoState {
+  const next = { ...state, integrations: { ...state.integrations, [key]: { connected, connectedAt: connected ? new Date().toISOString() : null } } };
+  const names: Record<IntegrationKey, string> = { google_calendar: "Google Calendar", linear: "Linear", notion: "Notion" };
+  return log(next, persona, `${connected ? "connected" : "disconnected"} ${names[key]}`, { private: true });
+}
+
+/** Demo only: record a Linear issue for an approved commitment (no real API call). */
+export function sendToLinear(state: DemoState, persona: PersonaKey, itemId: string): DemoState {
+  const item = getItem(state, itemId);
+  if (item.status !== "committed") throw new DemoRuleError("Only approved commitments can be sent to Linear.");
+  if (!state.integrations.linear.connected) throw new DemoRuleError("Connect Linear on the Integrations page first.");
+  if (state.linearIssues[itemId]) return state;
+  const key = `ACC-${100 + Object.keys(state.linearIssues).length + 1}`;
+  const next = {
+    ...state,
+    linearIssues: { ...state.linearIssues, [itemId]: { key, createdAt: new Date().toISOString(), createdBy: personOf(persona).name } },
+  };
+  return log(next, persona, `sent “${item.title}” to Linear as ${key}`);
 }

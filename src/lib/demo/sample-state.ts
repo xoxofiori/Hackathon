@@ -263,8 +263,8 @@ export function initialDemoState(now: Date = new Date()): DemoState {
   });
 
   const base: DemoState = {
-    schema: 4, createdAt: now.toISOString(), meetings, segments, items, clarifications, library: sampleRecords(now),
-    tasks: sampleTasks(d), groups: sampleGroups(now),
+    schema: 5, createdAt: now.toISOString(), meetings, segments, items, clarifications, library: sampleRecords(now),
+    tasks: sampleTasks(d), groups: sampleGroups(now), integrations: disconnectedIntegrations(), linearIssues: {},
     goals: [
       { id: "g-premiere", side: null, private: false, title: "Launch Season 3 with a co-branded premiere in Geneva", criteria: "Premiere hosted by Aurel in late January 2027; both brands on all launch materials.", progress: 55, status: "on_track", summary: "Date and host agreed. The early “Q1” mismatch was caught and resolved. Guest list and press plan are open." },
       { id: "g-schedule", side: "A", private: false, title: "Deliver all branded content on schedule", criteria: "Every vignette reaches Aurel on or before its signed date.", progress: 45, status: "at_risk", summary: "Episode 1 rough cut arrived 3 days late; weather is a known risk for vignettes 2–4." },
@@ -328,7 +328,9 @@ export const sideLabel = (s: SideKey | null) => (s ? SIDES[s].label : "Joint");
  */
 export function migrateDemoState(saved: unknown, now: Date = new Date()): DemoState | null {
   const version = (saved as { schema?: number } | null)?.schema;
-  if (version === 4) return saved as DemoState;
+  if (version === 5) return saved as DemoState;
+  // Schema 5 only added integrations; nothing else changed.
+  if (version === 4) return { ...(saved as DemoState), schema: 5, integrations: disconnectedIntegrations(), linearIssues: {} };
   if (version !== 1 && version !== 2 && version !== 3) return null;
   const fresh = initialDemoState(now);
   const old = saved as DemoState;
@@ -338,5 +340,16 @@ export function migrateDemoState(saved: unknown, now: Date = new Date()): DemoSt
     groupSuggestion: m.groupSuggestion ?? null,
   }));
   const library = [...kept, ...fresh.library.filter((f) => !kept.some((k) => k.id === f.id))];
-  return { ...fresh, ...old, schema: 4, library, groups: fresh.groups, tasks: version === 3 ? old.tasks : fresh.tasks };
+  return {
+    ...fresh, ...old, schema: 5, library, groups: fresh.groups, tasks: version === 3 ? old.tasks : fresh.tasks,
+    integrations: disconnectedIntegrations(), linearIssues: {},
+  };
+}
+
+export function disconnectedIntegrations(): DemoState["integrations"] {
+  return {
+    google_calendar: { connected: false, connectedAt: null },
+    linear: { connected: false, connectedAt: null },
+    notion: { connected: false, connectedAt: null },
+  };
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CalendarDays, Check, Lightbulb, MessageCircleQuestion, ThumbsUp, Undo2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SendToLinear } from "@/components/integrations/send-to-linear";
 import { Textarea } from "@/components/ui/input";
 import { useDemo } from "@/components/demo/demo-provider";
 import {
@@ -119,9 +120,12 @@ export function CommitmentCard({ item }: { item: DemoItem }) {
         </div>
       )}
       {item.status === "committed" && (
-        <Button variant="ghost" size="sm" className="mt-3 -ml-2 rounded-full text-muted-foreground" onClick={() => openPushback("change")}>
-          Suggest a change
-        </Button>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <SendToLinear itemId={item.id} />
+          <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground" onClick={() => openPushback("change")}>
+            Suggest a change
+          </Button>
+        </div>
       )}
 
       {mode && (

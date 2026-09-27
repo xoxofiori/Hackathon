@@ -92,7 +92,7 @@ describe("migrating older saved demos", () => {
       groups: undefined,
     };
     const out = migrateDemoState(v3, NOW)!;
-    expect(out.schema).toBe(4);
+    expect(out.schema).toBe(5);
     expect(out.items.find((i) => i.id === "prototypes")!.status).toBe("committed");
     expect(out.groups).toHaveLength(3);
     expect(out.library.find((m) => m.id === "m3")!.groupId).toBe("g-aurel");

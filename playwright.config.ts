@@ -13,7 +13,7 @@ export default defineConfig({
     // Demo mode (default): no Supabase, no env. Needs `npm run build` first.
     {
       name: "demo",
-      testMatch: /(demo|meetings|groups)\.spec\.ts/,
+      testMatch: /(demo|meetings|groups|integrations)\.spec\.ts/,
       use: { ...use, baseURL: process.env.E2E_DEMO_URL ?? "http://localhost:3001" },
     },
     // Live mode: needs a seeded Supabase and `ACCORD_MODE=live npm run dev` on :3000.

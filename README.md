@@ -39,6 +39,11 @@ Demo mode is the default. It runs entirely in the browser with the built-in Wild
   sample meetings use pre-set groups and new meetings are matched on each group's keywords (which grow as meetings
   are added).
 
+- **Integrations** (`/integrations`): Google Calendar, Linear and Notion cards. In demo mode, Connect just marks the
+  integration as connected — no sign-in and no real API calls. Approved commitments get a **Send to Linear** button
+  that records an issue (e.g. `ACC-101`) and shows "Issue created."; if Linear isn't connected yet, it offers to
+  connect and send in one click.
+
 The **Analysis** page (`/demo`, "View Analysis" on a meeting) and **Commitments** (`/commitments`) use the same design:
 
 - **One list of commitment cards** — what, who, when — grouped as *Needs your decision*, *Waiting on the other side*
@@ -140,6 +145,7 @@ src/components/workspace/    Sidebar shell, Home dashboard, Settings
 src/components/meetings/     New Meeting flow, meeting cards, meeting notes page (filters · notes · transcript)
 src/lib/meetings/            Transcript parsing, keyword matching, sample + rule-based notes, groups
 src/components/groups/       Group tags and filters, group picker, suggestion banner, group page
+src/components/integrations/ Integrations page and Send to Linear (demo only)
 src/lib/supabase/            Server (user session), browser and admin (service-role) clients
 src/lib/data/                Server-side data access (always through the user's session → RLS)
 src/proxy.ts                 Session refresh + auth gate (Next.js 16 "proxy", formerly middleware)
